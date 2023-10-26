@@ -1,0 +1,63 @@
+// AUTOMATICALLY GENERATED FILE. PLEASE DO NOT MODIFY IT MANUALLY
+//
+// PIO Unified Debugger
+//
+// Documentation: https://docs.platformio.org/page/plus/debugging.html
+// Configuration: https://docs.platformio.org/page/projectconf/section_env_debug.html
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C/C++ Runner: Debug Session",
+            "type": "cppdbg",
+            "request": "launch",
+            "args": [],
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "cwd": "/home/matias/Documentos/Esp32sonometro/src",
+            "program": "/home/matias/Documentos/Esp32sonometro/src/build/Debug/outDebug",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/home/matias/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin/xtensa-esp32-elf-gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug",
+            "executable": "/home/matias/Documentos/Esp32sonometro/.pio/build/esp-wrover-kit/firmware.elf",
+            "projectEnvName": "esp-wrover-kit",
+            "toolchainBinDir": "/home/matias/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "preLaunchTask": {
+                "type": "PlatformIO",
+                "task": "Pre-Debug"
+            }
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (skip Pre-Debug)",
+            "executable": "/home/matias/Documentos/Esp32sonometro/.pio/build/esp-wrover-kit/firmware.elf",
+            "projectEnvName": "esp-wrover-kit",
+            "toolchainBinDir": "/home/matias/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "type": "platformio-debug",
+            "request": "launch",
+            "name": "PIO Debug (without uploading)",
+            "executable": "/home/matias/Documentos/Esp32sonometro/.pio/build/esp-wrover-kit/firmware.elf",
+            "projectEnvName": "esp-wrover-kit",
+            "toolchainBinDir": "/home/matias/.platformio/packages/toolchain-xtensa-esp32@8.4.0+2021r2-patch5/bin",
+            "internalConsoleOptions": "openOnSessionStart",
+            "loadMode": "manual"
+        }
+    ]
+}
