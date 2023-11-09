@@ -139,7 +139,7 @@ SOS_IIR_Filter C_weighting = {
 #define SAMPLE_RATE       48000 
 #define SAMPLE_BITS       32
 #define SAMPLE_T          int32_t // Tipo de dato a utilizar para almacenra cada muestra de audio
-#define SAMPLES_SHORT     (SAMPLE_RATE / 8) // 125ms de muestras 6000 muestras
+#define SAMPLES_SHORT     (SAMPLE_RATE / 8) // 125ms de muestras -> 6000 muestras
 #define SAMPLES_LEQ       (SAMPLE_RATE * LEQ_PERIOD)// Muestras a integrar para obtener el Leq
 #define DMA_BANK_SIZE     (SAMPLES_SHORT / 16) // Tamaño del Direct Memory Acces Controller: 375 muestras (1.5 KByte)
 #define DMA_BANKS         32 // Cantidad de bancos utilizados
@@ -223,7 +223,7 @@ void mic_i2s_reader_task(void* parameter) {
   //Se descarta el primer bloque de datos de inicio (INMP441 tiene hasta 83ms)
   size_t bytes_read = 0;
   i2s_read(I2S_PORT, &samples, SAMPLES_SHORT * sizeof(int32_t), &bytes_read, portMAX_DELAY);
-
+  Serial.printf("Eliminar primer buffer");
   while (true) {
     // Bucle de ejecución continua que toma valores del Mic por I2S
     //
@@ -260,17 +260,13 @@ void mic_i2s_reader_task(void* parameter) {
   }
 }
 
-//
 // Setup and main loop 
 //
 // Note: Use doubles, not floats, here unless you want to pin
 //       the task to whichever core it happens to run on at the moment
 // 
 void setup() {
-
-  // If needed, now you can actually lower the CPU frquency,
-  // i.e. if you want to (slightly) reduce ESP32 power consumption 
-  setCpuFrequencyMhz(80); // It should run as low as 80MHz
+  setCpuFrequencyMhz(80); // Configurar frecuencia del procesador [MHz]
   
   Serial.begin(112500);
   delay(1000); // Safety
@@ -283,7 +279,7 @@ void setup() {
     display.setFont(ArialMT_Plain_16);
   #endif
 
-  // Create FreeRTOS queue
+  // Crear cola de FreeRTOS
   samples_queue = xQueueCreate(8, sizeof(sum_queue_t));
   
   // Create the I2S reader FreeRTOS task
@@ -303,16 +299,17 @@ void setup() {
 
     // Calculate dB values relative to MIC_REF_AMPL and adjust for microphone reference
     double short_RMS = sqrt(double(q.sum_sqr_SPL) / SAMPLES_SHORT);
+    // Revisión obligatoria a esta fórmula
     double short_SPL_dB = MIC_OFFSET_DB + MIC_REF_DB + 20 * log10(short_RMS / MIC_REF_AMPL);
 
-    // In case of acoustic overload or below noise floor measurement, report infinty Leq value
+    // "Acoustic overflow" ?
     if (short_SPL_dB > MIC_OVERLOAD_DB) {
       Leq_sum_sqr = INFINITY;
     } else if (isnan(short_SPL_dB) || (short_SPL_dB < MIC_NOISE_DB)) {
       Leq_sum_sqr = -INFINITY;
     }
 
-    // Accumulate Leq sum
+    // Acumulación de los valores Leq
     Leq_sum_sqr += q.sum_sqr_weighted;
     Leq_samples += SAMPLES_SHORT;
 
