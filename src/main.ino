@@ -22,6 +22,10 @@
 #include <driver/i2s.h>
 #include "sos-iir-filter.h"
 #include <Arduino.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "wifi_manager.h"
+//#include "Mqtt_manager.h"
 
 //
 // Configuración
@@ -66,17 +70,11 @@ constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_
 #define I2S_PORT          I2S_NUM_0
 
 //
-// Configuración del display 
+// Configuración Wifi 
 // 
-#if (USE_DISPLAY > 0)
-  // ThingPulse/esp8266-oled-ssd1306, you may need the latest source and PR#198 for 64x48
-  #include <SSD1306Wire.h>
-  #define OLED_GEOMETRY     GEOMETRY_64_48
-  //#define OLED_GEOMETRY GEOMETRY_128_32
-  //#define OLED_GEOMETRY GEOMETRY_128_64
-  #define OLED_FLIP_V       1
-  SSD1306Wire display(0x3c, SDA, SCL, OLED_GEOMETRY);
-#endif
+WiFiManager wifiManager;
+//MQTTManager mqttManager("192.168.0.61", 1883);
+
 
 // ----------------------
 // Filtro de Compensación
@@ -271,24 +269,20 @@ void setup() {
   Serial.begin(112500);
   delay(1000); // Safety
   
-  #if (USE_DISPLAY > 0)
-    display.init();
-    #if (OLED_FLIP_V > 0)
-      display.flipScreenVertically();
-    #endif
-    display.setFont(ArialMT_Plain_16);
-  #endif
+  // Configuración del 
+  wifiManager.setSSID("Fibertel WiFi748 2.4GHz");
+  wifiManager.setPassword("01439656713");
+  
+  //mqttManager.setCredentials("Esp32-0", "");
+  //mqttManager.connectToMqtt();
 
   // Crear cola de FreeRTOS
   samples_queue = xQueueCreate(8, sizeof(sum_queue_t));
   
   // Create the I2S reader FreeRTOS task
-  // NOTE: Current version of ESP-IDF will pin the task 
-  //       automatically to the first core it happens to run on
-  //       (due to using the hardware FPU instructions).
-  //       For manual control see: xTaskCreatePinnedToCore
+  xTaskCreate(WiFiManager::taskFunction, "WiFiTask", 4096, &wifiManager, 1, NULL);
   xTaskCreate(mic_i2s_reader_task, "Mic I2S Reader", I2S_TASK_STACK, NULL, I2S_TASK_PRI, NULL);
-
+  
   sum_queue_t q;
   uint32_t Leq_samples = 0;
   double Leq_sum_sqr = 0;
@@ -322,44 +316,15 @@ void setup() {
       
       // Serial output, customize (or remove) as needed
       Serial.printf("%.1f\n", Leq_dB);
-
+      
+      //------------MQTT------------
+      //char message[16]; // Ajusta el tamaño según tus necesidades
+      //snprintf(message, sizeof(message), "%.1f", Leq_dB);
+      //mqttManager.publish("leq",message);
+      
       // Debug only
-      //Serial.printf("%u processing ticks\n", q.proc_ticks);
+      Serial.printf("%u processing ticks\n", q.proc_ticks);
     }
-
-    #if (USE_DISPLAY > 0)
-
-      //
-      // Example code that displays the measured value.
-      // You should customize the below code for your display 
-      // and display library used.
-      //
-      
-      display.clear();
-
-      // It is important to somehow notify when the deivce is out of its range
-      // as the calculated values are very likely with big error
-      if (Leq_dB > MIC_OVERLOAD_DB) {
-        // Display 'Overload' if dB value is over the AOP
-        display.drawString(0, 24, "Overload");
-      } else if (isnan(Leq_dB) || (Leq_dB < MIC_NOISE_DB)) {
-        // Display 'Low' if dB value is below noise floor
-        display.drawString(0, 24, "Low");
-      }
-      
-      // The 'short' Leq line
-      double short_Leq_dB = MIC_OFFSET_DB + MIC_REF_DB + 20 * log10(sqrt(double(q.sum_sqr_weighted) / SAMPLES_SHORT) / MIC_REF_AMPL);
-      uint16_t len = min(max(0, int(((short_Leq_dB - MIC_NOISE_DB) / MIC_OVERLOAD_DB) * (display.getWidth()-1))), display.getWidth()-1);
-      display.drawHorizontalLine(0, 0, len);
-      display.drawHorizontalLine(0, 1, len);
-      display.drawHorizontalLine(0, 2, len);
-      
-      // The Leq numeric decibels
-      display.drawString(0, 4, String(Leq_dB, 1) + " " + DB_UNITS);
-      
-      display.display();
-      
-    #endif // USE_DISPLAY
   }
 }
 
