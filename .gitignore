@@ -8,3 +8,6 @@ AddWiFi.zip
 src/XSpace.cpp
 src/XSpace.h
 src/wifi_manager.h
+src/main_2
+src/Mqtt_manager.h
+src/publicador-old.h
