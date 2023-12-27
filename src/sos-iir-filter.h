@@ -157,7 +157,7 @@ struct SOS_IIR_Filter {
 };
 
 //
-// For testing only
+// Pruebas
 //
 struct No_IIR_Filter {  
   const int num_sos = 0;

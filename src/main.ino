@@ -212,7 +212,7 @@ void mic_i2s_init() {
 //
 #define I2S_TASK_PRI   4 // Prioridad de la tarea
 #define I2S_TASK_STACK 2048 //Tamaño de pila de la tarea (2048 palabras de 32 bits)
-//
+
 void mic_i2s_reader_task(void* parameter) {
   // Función que se ejecuta en paralelo con la tarea principal
   // El argumento de entrada no se utiliza
@@ -261,33 +261,55 @@ void mic_i2s_reader_task(void* parameter) {
   }
 }
 
+/**
+ * Callback invocado cuando se recibe un mensaje MQTT.
+ * 
+ * @param topic   El tema al que está suscrito el mensaje.
+ * @param payload Puntero al conjunto de bytes que contiene el mensaje recibido.
+ * @param length  La longitud del mensaje recibido en bytes.
+ */
 void Mqtt_Callback(char* topic, byte* payload, unsigned int length) { 
-  
+  // Crear una cadena de caracteres para almacenar el mensaje recibido
   String incoming = "";
+  
+  // Imprimir en la consola serial el tema desde el que se recibió el mensaje
   Serial.print("Mensaje recibido desde -> ");
   Serial.println(topic);
   
+  // Construir la cadena de caracteres del mensaje recibido a partir del payload
   for(int i=0; i<length; i++){
     incoming = incoming + (char) payload[i];
   }
+  
+  // Imprimir en la consola serial el contenido del mensaje
   Serial.println("Mensaje: " + incoming);
 }
 
+/**
+ * Tarea encargada de gestionar la conexión MQTT en segundo plano.
+ * 
+ * @param pvParameters Puntero a los parámetros de la tarea (no utilizado en este caso).
+ */
 void MqttTask(void *pvParameters){
   while(1){
+    // Verificar si no está conectado a MQTT y realizar la conexión si es necesario
     if (!Publicar.Mqtt_IsConnected()){
       Serial.println("Intentando conectar MQTT");
       Publicar.Mqtt_Connect("ESP32Test","Mati","1234"); 
       Publicar.Mqtt_Suscribe("Callback");
     }
+    
+    // Si está conectado, imprimir un símbolo de exclamación y esperar 1 segundo
     if (Publicar.Mqtt_IsConnected()){
       Serial.print("!");
       vTaskDelay(1000);
     }
-  Publicar.Mqtt_KeepAlive();
-  }
+  
+    // Realizar la operación de mantenimiento de la conexión MQTT
+    Publicar.Mqtt_KeepAlive();
+  } 
+  // Eliminar la tarea (no debería llegar aquí)
   vTaskDelete(NULL);
-
 }
 
 // ----------------------------------
