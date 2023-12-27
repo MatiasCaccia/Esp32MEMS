@@ -5,3 +5,6 @@
 .vscode/ipch
 AddMQTT.zip
 AddWiFi.zip
+src/XSpace.cpp
+src/XSpace.h
+src/wifi_manager.h

@@ -15,8 +15,6 @@
  * the reference value for which the sensitivity is specified (typically 
  * 94dB, pure sine wave at 1KHz).
  * 
- * Displays line on the small OLED screen with 'short' LAeq(125ms)
- * response and numeric LAeq(1sec) dB value from the signal RMS.
  */
 
 #include <driver/i2s.h>
@@ -24,8 +22,9 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include "wifi_manager.h"
-#include <XSpace.h>
+//#include "wifi_manager.h"
+//#include <XSpace.h>
+#include "Publicador.h"
 
 
 //
@@ -73,12 +72,11 @@ constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_
 
 //
 // Configuración Wifi + MQTT
-// 
-//WiFiManager wifiManager;
-//MQTTManager mqttManager("192.168.0.61", 1883);
+//
 char buffer[50];
 double mqttvel;
-XSpaceV2 XSpaceV2Board;
+//XSpaceV2 XSpaceV2Board;
+Publicador Publicar;
 const char* topic_2 = "Callback";
 
 
@@ -277,60 +275,39 @@ void Mqtt_Callback(char* topic, byte* payload, unsigned int length) {
 
 void MqttTask(void *pvParameters){
   while(1){
-    if (!XSpaceV2Board.Mqtt_IsConnected()){
+    if (!Publicar.Mqtt_IsConnected()){
       Serial.println("Intentando conectar MQTT");
-      XSpaceV2Board.Mqtt_Connect("ESP32Test","Mati","1234"); 
-      XSpaceV2Board.Mqtt_Suscribe("Callback");
+      Publicar.Mqtt_Connect("ESP32Test","Mati","1234"); 
+      Publicar.Mqtt_Suscribe("Callback");
     }
-    if (XSpaceV2Board.Mqtt_IsConnected()){
-      //mqttvel= 115; //XSpaceV2Board.GetEncoderSpeed (DEGREES_PER_SECOND);
-      //((String)mqttvel).toCharArray(buffer, 10);
-      //XSpaceV2Board.Mqtt_Publish("test", buffer);
+    if (Publicar.Mqtt_IsConnected()){
       Serial.print("!");
       vTaskDelay(1000);
     }
-  XSpaceV2Board.Mqtt_KeepAlive();
+  Publicar.Mqtt_KeepAlive();
   }
   vTaskDelete(NULL);
 
 }
 
-
-
 // ----------------------------------
 //               SETUP
 // ----------------------------------
 void setup() {
-  setCpuFrequencyMhz(80); // Configurar frecuencia del procesador [MHz]
+  setCpuFrequencyMhz(80); // Configuración de frecuencia del procesador [MHz]
   
   Serial.begin(112500);
   delay(1000); // Tiempo de espera por seguridad
   
-  // Configuración WiFi
-  //wifiManager.setSSID("Fibertel WiFi748 2.4GHz");
-  //wifiManager.setPassword("01439656713");
+  // Configuraciones Wifi + MQTT
+  Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
+  Publicar.Mqtt_init("192.168.0.231",1883);
 
   // Crear cola de FreeRTOS
   samples_queue = xQueueCreate(8, sizeof(sum_queue_t));
   
   // Crear las task de FreeRTOS
-  //xTaskCreatePinnedToCore(WiFiManager::taskFunction, "WiFiTask", 2048, &wifiManager, 1, NULL,0);
-  XSpaceV2Board.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
-  XSpaceV2Board.Mqtt_init("192.168.0.231",1883);
-
   xTaskCreatePinnedToCore(MqttTask, "MQTTTask", 4000, NULL, 1, NULL,1);
-  
-  /*
-  // Configuración MQTT
-  WifiClient espClient;
-  PubSubClient client(espClient);
-  const char* mqtt_server = "192.168.0.61";
-  const int mqtt_port = 1883;
-  const char* mqtt_topic = "Sensor";
-  client.setServer(mqtt_server, mqtt_port);
-  client.connect("Esp32");
-  */
-
   xTaskCreate(mic_i2s_reader_task, "Mic I2S Reader", I2S_TASK_STACK, NULL, I2S_TASK_PRI, NULL);
   
   sum_queue_t q;
@@ -364,30 +341,21 @@ void setup() {
       Leq_sum_sqr = 0;
       Leq_samples = 0;
       
-      // Serial output, customize (or remove) as needed
+      // Impresión del valor por Serial
       Serial.printf("%.1f\n", Leq_dB);
-      ((String)Leq_dB).toCharArray(buffer, 10);
-      XSpaceV2Board.Mqtt_Publish("test", buffer);
+
       //------------MQTT------------
-      //char message[16]; // Ajusta el tamaño según tus necesidades
-      //snprintf(message, sizeof(message), "%.1f", Leq_dB);
-      //mqttManager.publish("leq",message);
       
+      ((String)Leq_dB).toCharArray(buffer, 10);
+      Publicar.Mqtt_Publish("test", buffer);
       // Debug only
       //Serial.printf("%u processing ticks\n", q.proc_ticks);
-      /*
-      if (client.connected()) {
-        client.publish("Sensor", "Hola, ¿estás?");
-      }else{
-        Serial.print("No MQTT");
-      }
-      */
     }
   }
 }
 
 // ----------------------------------
-//               SETUP
+//               LOOP
 // ----------------------------------
 void loop() {
   // Nothing here..

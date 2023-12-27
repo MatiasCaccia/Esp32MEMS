@@ -10,9 +10,9 @@
 #include <HTTPClient.h>
 #include <PubSubClient.h>
 
-class Publicador {
+class Publicador_v1 {
 public:
-    Publicador(const char* server, int port, const char* endpoint) : server(server), port(port), endpoint(endpoint) {}
+    Publicador_v1(const char* server, int port, const char* endpoint) : server(server), port(port), endpoint(endpoint) {}
 
     void setCredentials(const char* username, const char* password) {
         this->username = username;
