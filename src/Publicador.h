@@ -12,13 +12,6 @@ class Publicador{
         bool Publicador_info = false;
 
     public:
-        //void init(int freq);
-        //void DRV8837_Sleep();
-        //void DRV8837_Wake();
-        //void DRV8837_Voltage(double vp);
-        
-        //double GetEncoderSpeed(int modo);
-
         void SerialInfo(bool mode);
         void Wifi_init(const char* ssid, const char* password);
         void Mqtt_init(const char* mqtt_server, uint16_t mqtt_port);
@@ -29,6 +22,5 @@ class Publicador{
     
         bool Mqtt_IsConnected();
 };
-
 
 #endif

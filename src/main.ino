@@ -358,5 +358,5 @@ void setup() {
 //               LOOP
 // ----------------------------------
 void loop() {
-  // Nothing here..
+  // Todo se ejecuta desde el setup
 }
