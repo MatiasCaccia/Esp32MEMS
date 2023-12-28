@@ -322,8 +322,8 @@ void setup() {
   delay(1000); // Tiempo de espera por seguridad
   
   // Configuraciones Wifi + MQTT
-  Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
-  Publicar.Mqtt_init("192.168.0.231",1883);
+  Publicar.Wifi_init("UNTREF PALOMAR 2do","delosaromos ");
+  Publicar.Mqtt_init("192.168.0.105",1883);
 
   // Crear cola de FreeRTOS
   samples_queue = xQueueCreate(8, sizeof(sum_queue_t));
