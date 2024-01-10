@@ -22,10 +22,8 @@
 #include <Arduino.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-//#include "wifi_manager.h"
-//#include <XSpace.h>
 #include "Publicador.h"
-
+//#include "BMP.h"
 
 //
 // Configuración
@@ -65,7 +63,7 @@ constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_
 #define I2S_WS            18 
 #define I2S_SCK           23 
 #define I2S_SD            19 
-// L/R a GND
+// L/R a VDD
 
 // Periférico I2S (0 o 1)
 #define I2S_PORT          I2S_NUM_0
@@ -312,6 +310,7 @@ void MqttTask(void *pvParameters){
   vTaskDelete(NULL);
 }
 
+//BMP bmpSensor(4);
 // ----------------------------------
 //               SETUP
 // ----------------------------------
@@ -320,14 +319,14 @@ void setup() {
   
   Serial.begin(112500);
   delay(1000); // Tiempo de espera por seguridad
-  
+  Serial.printf("Anda?");
   // Configuraciones Wifi + MQTT
   Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
   //Publicar.Wifi_init("UNTREF PALOMAR 2do","delosaromos ");  
   Publicar.Mqtt_init("192.168.0.105",1883);
-  //Publicar.Mqtt_init("192.168.0.105",1883);
-
-
+  //Publicar.Mqtt_init("192.168.0.105",1883); 
+  Serial.printf("Hasta Aqui");
+  
   // Crear cola de FreeRTOS
   samples_queue = xQueueCreate(8, sizeof(sum_queue_t));
   
