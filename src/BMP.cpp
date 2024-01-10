@@ -1,6 +1,6 @@
 #include "BMP.h"
 
-BMP::BMP(int csPin) : bmp(csPin) {}
+BMP::BMP() {}
 
 bool BMP::begin() {
     return bmp.begin();
@@ -13,7 +13,3 @@ float BMP::readPressure() {
 float BMP::readTemperature() {
     return bmp.readTemperature();
 }
-
-
-
-

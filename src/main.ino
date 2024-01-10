@@ -23,7 +23,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "Publicador.h"
-//#include "BMP.h"
+#include "BMP.h"
 
 //
 // Configuración
@@ -310,7 +310,7 @@ void MqttTask(void *pvParameters){
   vTaskDelete(NULL);
 }
 
-//BMP bmpSensor(4);
+BMP bmpSensor;
 // ----------------------------------
 //               SETUP
 // ----------------------------------
@@ -319,7 +319,20 @@ void setup() {
   
   Serial.begin(112500);
   delay(1000); // Tiempo de espera por seguridad
+  
+  if (!bmpSensor.begin()) {
+        Serial.println("BMP180 Sensor not found!");
+        while (1) { }
+  }
+  // BMP print
+  Serial.print("Pressure = ");
+  Serial.print(bmpSensor.readPressure());
+  Serial.print(" hPa");
+  Serial.print("  Temp = ");
+  Serial.print(bmpSensor.readTemperature());
+  Serial.println("ºC");
   Serial.printf("Anda?");
+  
   // Configuraciones Wifi + MQTT
   Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
   //Publicar.Wifi_init("UNTREF PALOMAR 2do","delosaromos ");  
@@ -366,7 +379,7 @@ void setup() {
       Leq_samples = 0;
       
       // Impresión del valor por Serial
-      Serial.printf("%.1f\n", Leq_dB);
+      Serial.printf("%.1f dBA | %f Pa | %.1f °C\n", Leq_dB, bmpSensor.readPressure(),bmpSensor.readTemperature());
 
       //------------MQTT------------
       

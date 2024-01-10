@@ -1,17 +1,17 @@
 #ifndef BMP_H
 #define BMP_H
 
-#include <Adafruit_BMP280.h>
-
+#include <Adafruit_BMP085.h>
+#include <SPI.h>
 class BMP {
 public:
-    BMP(int csPin);
+    BMP();
     bool begin();
     float readPressure();
     float readTemperature();
 
 private:
-    Adafruit_BMP280 bmp;
+    Adafruit_BMP085 bmp;
 };
 
 #endif
