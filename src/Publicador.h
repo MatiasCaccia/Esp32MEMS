@@ -5,11 +5,13 @@
 #include <stdint.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <SD.h>
 
 class Publicador{
     private:
         //double vel_ant = 0;
         bool Publicador_info = false;
+        File backupFile;
 
     public:
         void SerialInfo(bool mode);
@@ -21,6 +23,12 @@ class Publicador{
         void Mqtt_KeepAlive();
     
         bool Mqtt_IsConnected();
+        
+        // Nuevo método para guardar en la tarjeta SD
+        void SaveToSD(const char* data);
+        
+        // Nuevo método para verificar la conexión WiFi y MQTT 
+        bool IsConnectionAvailable();
 };
 
 #endif

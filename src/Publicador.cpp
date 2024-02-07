@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Publicador.h>
 #include <PubSubClient.h> // Incluye la librería PubSubClient para la comunicación MQTT
+#include "SD_funciones.h"
+//
 
 WiFiClient PublicadorWifiClient; // Crea un objeto WiFiClient para gestionar la conexión WiFi
 PubSubClient PublicadorMQTT(PublicadorWifiClient); // Crea un objeto PubSubClient para gestionar la comunicación MQTT
@@ -120,4 +122,27 @@ void Publicador::Mqtt_KeepAlive(){
  */
 void Publicador::SerialInfo(bool mode){
     this->Publicador_info = mode;  // Habilita o deshabilita la impresión de información (modo verbose)
+}
+
+/**
+* Función para guardar la medición siempre que no haya conexión WiFi o al broker MQTT
+* @param data es lo que se va a guardar en caso que no haya conexión
+*
+*/
+void Publicador::SaveToSD(const char* data){
+  if(SD.begin()){
+    backupFile = SD.open("/backup.txt", FILE_APPEND);
+    if(backupFile){
+      backupFile.println(data);
+      backupFile.close();
+    } else{
+      Serial.println("Error al intentar abrir archivo backup.txt");
+    }
+  } else{
+    Serial.println("Error iniciando la tajeta SD");
+  }
+}
+
+bool Publicador::IsConnectionAvailable(){
+  return (WiFi.status() == WL_CONNECTED) && PublicadorMQTT.connected();
 }

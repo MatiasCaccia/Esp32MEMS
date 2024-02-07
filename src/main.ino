@@ -54,7 +54,7 @@
 // Algo así como 333873.13 
 constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_BITS-1))-1);
 
-//
+// ----- CONFIGURACION DE PINES -----
 // I2S pins
 // Se puede conectar a casi cualquier pin
 // SD a cualquier pin incluidas las entradas en pins 36 a 39
@@ -68,15 +68,20 @@ constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_
 // Periférico I2S (0 o 1)
 #define I2S_PORT          I2S_NUM_0
 
+// SPI2 para la lectora de la tarjeta SD
+#define SD_CS_PIN         5
+#define SD_CLK_PIN        14
+#define SD_MOSI_PIN       13
+#define SD_MISO_PIN       12
+
 //
 // Configuración Wifi + MQTT
 //
 char buffer[50];
 double mqttvel;
-//XSpaceV2 XSpaceV2Board;
 Publicador Publicar;
 const char* topic_2 = "Callback";
-
+int flag = 1;
 
 // ----------------------
 // Filtro de Compensación
@@ -311,6 +316,7 @@ void MqttTask(void *pvParameters){
 }
 
 BMP bmpSensor;
+SPIClass SPI_2(HSPI);
 // ----------------------------------
 //               SETUP
 // ----------------------------------
@@ -321,17 +327,14 @@ void setup() {
   delay(1000); // Tiempo de espera por seguridad
   
   if (!bmpSensor.begin()) {
-        Serial.println("BMP180 Sensor not found!");
+        Serial.println("Fallo al montar el sensor BMP180");
         while (1) { }
   }
-  // BMP print
-  Serial.print("Pressure = ");
-  Serial.print(bmpSensor.readPressure());
-  Serial.print(" hPa");
-  Serial.print("  Temp = ");
-  Serial.print(bmpSensor.readTemperature());
-  Serial.println("ºC");
-  Serial.printf("Anda?");
+  pinMode(SD_CS_PIN, OUTPUT);
+  if (!SD.begin(SD_CS_PIN,SPI_2)){
+    Serial.println("Fallo al montar la tarjeta SD");
+    flag = 0;
+  }
   
   // Configuraciones Wifi + MQTT
   Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
@@ -381,10 +384,15 @@ void setup() {
       // Impresión del valor por Serial
       Serial.printf("%.1f dBA | %f Pa | %.1f °C\n", Leq_dB, bmpSensor.readPressure(),bmpSensor.readTemperature());
 
-      //------------MQTT------------
-      
+      //------------ Lógica de comprobación de conexión ------------
+      if(!Publicar.IsConnectionAvailable() && flag != 0){
+        char sdData[30];
+        sprintf(sdData, "%.1f dBA | %f Pa | %.1f °C\n",Leq_dB, bmpSensor.readPressure(),bmpSensor.readTemperature());
+        Publicar.SaveToSD(sdData);
+      }
       ((String)Leq_dB).toCharArray(buffer, 10);
       Publicar.Mqtt_Publish("test", buffer);
+      
       // Debug only
       //Serial.printf("%u processing ticks\n", q.proc_ticks);
     }
