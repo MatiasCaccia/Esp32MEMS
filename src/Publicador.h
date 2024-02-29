@@ -26,6 +26,7 @@ class Publicador{
         
         // Nuevo método para guardar en la tarjeta SD
         void SaveToSD(const char* data);
+        void setupSD();
         
         // Nuevo método para verificar la conexión WiFi y MQTT 
         bool IsConnectionAvailable();

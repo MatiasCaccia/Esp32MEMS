@@ -4,7 +4,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-extern SPIClass SPI2;
+extern SPIClass SPI;
 
 void listDir(fs::FS &fs, const char * dirname, uint8_t levels);
 void createDir(fs::FS &fs, const char * path);

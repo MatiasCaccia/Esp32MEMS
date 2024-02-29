@@ -1,6 +1,6 @@
 #include "SD_funciones.h"
 
-SPIClass SPI2(HSPI);
+//SPIClass SPI(HSPI);
 
 /**
 * @brief Función para el listado de los directorios existentes de forma recursiva

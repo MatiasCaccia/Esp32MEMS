@@ -68,11 +68,11 @@ constexpr double MIC_REF_AMPL = pow(10, double(MIC_SENSITIVITY)/20) * ((1<<(MIC_
 // Periférico I2S (0 o 1)
 #define I2S_PORT          I2S_NUM_0
 
-// SPI2 para la lectora de la tarjeta SD
-#define SD_CS_PIN         5
+// PINES para la lectora de la tarjeta SD
+#define SD_CS_PIN         25
 #define SD_CLK_PIN        14
-#define SD_MOSI_PIN       13
-#define SD_MISO_PIN       12
+#define SD_MOSI_PIN       15
+#define SD_MISO_PIN       4
 
 //
 // Configuración Wifi + MQTT
@@ -316,7 +316,8 @@ void MqttTask(void *pvParameters){
 }
 
 BMP bmpSensor;
-SPIClass SPI_2(HSPI);
+
+
 // ----------------------------------
 //               SETUP
 // ----------------------------------
@@ -330,12 +331,14 @@ void setup() {
         Serial.println("Fallo al montar el sensor BMP180");
         while (1) { }
   }
-  pinMode(SD_CS_PIN, OUTPUT);
-  if (!SD.begin(SD_CS_PIN,SPI_2)){
+  //pinMode(SD_CS_PIN, OUTPUT);
+  SPI.begin(SD_CLK_PIN, SD_MISO_PIN, SD_MOSI_PIN, SD_CS_PIN);
+  
+  if (!SD.begin()){
     Serial.println("Fallo al montar la tarjeta SD");
     flag = 0;
   }
-  
+
   // Configuraciones Wifi + MQTT
   Publicar.Wifi_init("Fibertel WiFi748 2.4GHz","01439656713");
   //Publicar.Wifi_init("UNTREF PALOMAR 2do","delosaromos ");  

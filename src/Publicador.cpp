@@ -6,6 +6,7 @@
 
 WiFiClient PublicadorWifiClient; // Crea un objeto WiFiClient para gestionar la conexión WiFi
 PubSubClient PublicadorMQTT(PublicadorWifiClient); // Crea un objeto PubSubClient para gestionar la comunicación MQTT
+SPIClass SPI_card(SPI);
 
 // Función de devolución de llamada (callback) para procesar los mensajes MQTT recibidos
 void Mqtt_Callback(char* topic, byte* payload, unsigned int length);
